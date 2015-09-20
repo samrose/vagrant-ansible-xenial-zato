@@ -1,0 +1,38 @@
+- name: Install Packages
+  apt: pkg={{ item }} state=installed update_cache=yes
+  with_items:
+    - ntp
+    #- ufw
+    #- fail2ban
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+    - python-redis
+    - python-pycurl
+    - apt-transport-https
+    - python-software-properties
+    - software-properties-common
+
+- name: Install zato apt key
+  apt_key: url=https://zato.io/repo/zato-0CBD7F72.pgp.asc state=present validate_certs=no
+
+- name: Add Zato repository
+  apt_repository: repo='deb https://zato.io/repo/stable/2.0/ubuntu trusty main' state=present
+
+- name: Install Zato
+  apt: pkg=zato state=installed update_cache=true
+
+- name: Create PG User
+  sudo_user: postgres
+  postgresql_user: name={{ db_user }} password={{ db_password }} state=present role_attr_flags=NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+
+- name: Create Database
+  sudo_user: postgres
+  postgresql_db: name={{ db_name }} owner={{ db_user }}
+
+- name: Provide user with DB permissions
+  sudo_user: postgres
+  postgresql_user: user={{ db_user }} db={{ db_name }} priv=ALL
+
+- name: Restart Postgres
+  service: name=postgresql state=restarted

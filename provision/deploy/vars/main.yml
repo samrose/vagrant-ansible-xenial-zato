@@ -1,0 +1,3 @@
+zato_dir: /srv/zato
+#zato_code_repo: git@bitbucket.org:slcftc/example-zato.git
+hot_deploy_dir: /srv/zato/server1/pickup-dir/
