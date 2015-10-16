@@ -1,0 +1,34 @@
+- stat: path=/srv/zato/server1
+  register: zatoexists
+
+- name: Create /srv/zato with proper permissions
+  file: path={{ zato_dir }} owner=zato group=zato mode=755 state=directory
+
+- name: Run zato quickstart
+  shell: sudo su -l zato -c "zato quickstart create --verbose --odb_host localhost --odb_port 5432 --odb_db_name {{ db_name }} --odb_user {{ db_user }} --odb_password {{ db_password }} --kvdb_password {{ redis_password }} {{ zato_dir }} postgresql localhost 6379"
+  when: zatoexists.stat.exists != true
+
+- name: Launch/Restart Zato
+  shell: sudo su -l zato -c {{ zato_dir }}/zato-qs-restart.sh
+
+- name: Sleep for 5 seconds
+  shell: sleep 5
+
+- debug: msg="If you have gotten this far, congratulations, Zato is now up and running with web-admin forwarded to port 8183. You will have to log into your vagrant box with vagrant ssh and reset the web admin password by running 'sudo su -l zato -c zato update password {{ zato_dir }}/web-admin admin'"
+#"
+
+#- name: Add ssh dir for zato user
+#  file: path=/opt/zato/.ssh owner=zato group=zato mode=755 state=directory
+
+#- name: Import ssh key for zato
+#  copy: src=.ssh/zato.id_rsa dest=/opt/zato/.ssh/id_rsa owner=zato group=zato mode=600 
+
+#- name: "Grab the repo and store it in {{ zato_code_repo }}"
+# note: this repo will be changed, currently has a deployment key problem
+#  sudo_user: zato
+#  git: repo={{ zato_code_repo }} dest=/opt/zato/repo accept_hostkey=yes key_file=/opt/zato/.ssh/id_rsa
+
+#- name: "Rsync all files in /opt/zato/repo/* to {{ hot_deploy_dir }} "
+#  sudo_user: zato
+#  shell: rsync -av /opt/zato/repo/* {{ hot_deploy_dir }}
+

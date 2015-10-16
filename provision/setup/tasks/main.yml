@@ -19,6 +19,15 @@
 - name: Add Zato repository
   apt_repository: repo='deb https://zato.io/repo/stable/2.0/ubuntu trusty main' state=present
 
+- name: Install redis
+  apt: pkg=redis-server state=installed update_cache=yes
+
+- name: Configure Redis password
+  lineinfile: dest=/etc/redis/redis.conf line="requirepass {{ redis_password }}"
+
+- name: Restart Redis
+  service: name=redis-server state=restarted
+
 - name: Install Zato
   apt: pkg=zato state=installed update_cache=true
 
